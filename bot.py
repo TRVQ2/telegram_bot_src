@@ -13,9 +13,8 @@ dp = Dispatcher(bot)
 @dp.message_handler()
 async def echo_send(message: types.Message):
     text = process_message(message.text)
-    if text is None or len(text) == 0:
+    if text is None or len(text.strip()) == 0:
         return
-    print("answer...")
     await message.answer(text)
     # await message.answer(message.text)  # answer
     # await message.reply(message.text)  # reply to message

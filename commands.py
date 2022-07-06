@@ -4,7 +4,7 @@ import lxml.html
 import re
 
 
-def parse_page(url):
+def parse_page(url) -> list:
     try:
         r = requests.get(url)
         if r.status_code != 200:
@@ -19,15 +19,15 @@ def parse_page(url):
 def lyrsense_prepare_url(band, song):
     if band is None or len(band) == 0 or song is None or len(song) == 0:
         return
-    band = '_'.join(i for i in band.lower().replace("'", "").split())
-    song = '_'.join(i for i in song.lower().replace("'", "").split())
+    band = '_'.join(band.lower().replace("'", "").split())
+    song = '_'.join(song.lower().replace("'", "").split())
     return f"https://lyrsense.com/{band}/{song}"
 
 
 def lyrsense_page_to_text(band, song):
     tree = parse_page(lyrsense_prepare_url(band, song))
     if tree is None:
-        return
+        return None
 
     lyric_ru_name = tree.xpath('//*[@id="ru_title"]/text()')
     lyric_fr_name = tree.xpath('//*[@id="fr_title"]/text()')
@@ -48,15 +48,15 @@ def lyrsense_page_to_text(band, song):
 def musinfo_prepare_url(band, song):
     if band is None or len(band) == 0 or song is None or len(song) == 0:
         return
-    band = '-'.join(i for i in band.lower().split())
-    song = '-'.join(i for i in song.lower().split())
+    band = '-'.join(band.lower().split())
+    song = '-'.join(song.lower().split())
     return f"https://ru.musinfo.net/lyrics/{band}/{song}"
 
 
 def musinfo_page_to_text(band, song):
     tree = parse_page(musinfo_prepare_url(band, song))
     if tree is None:
-        return
+        return None
 
     return '\n'.join(
         '' if i.text is None else i.text
@@ -77,9 +77,9 @@ def musinfo_page_to_text2(band, song):
     lyric_dst_name = tree.xpath('//*[@id="lyric-src"]/div[1]/text()')
     lyric_dst = tree.xpath('//*[@id="lyric-src"]/div[@class="line"]/text()')
     return str(lyric_src_name) + '\n\n' + \
-        '\n'.join(i for i in lyric_src) + "\n=====\n" + \
+        '\n'.join(lyric_src) + "\n=====\n" + \
         str(lyric_dst_name) + '\n\n' + \
-        '\n'.join(i for i in lyric_dst)
+        '\n'.join(lyric_dst)
 # Musinfo specific methods ====================================================
 
 
@@ -91,10 +91,13 @@ def get_lyrics(path):  # expected input format 'Band|Song'
         return 'Wrong request: Song is not specified. ' + \
             supported_commands['/lyrics']['usage']
     result = ''
+    # print(f"Searching band: {items[0]}, song: {items[1]}...")
     for i in supported_commands['/lyrics']['api_list']:
         result = i(items[0], items[1])
         if result is not None:
             break
+        # else:
+        #     print("Haven't found the song")
     return result
 
 
